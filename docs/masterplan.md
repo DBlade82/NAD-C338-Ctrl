@@ -19,8 +19,8 @@ not ready for general use can be marked as prereleases.
 ## Current status
 
 M1 through M4 are complete. M4 controls passed supervised hardware acceptance.
-Version `0.1.0-beta.3` is an experimental prerelease. Marketplace installation
-of beta.2 succeeded; update and HACS-specific installation remain unverified.
+Version `1.0.0` is the first stable release. Marketplace installation of beta.2
+succeeded; update and installation through older HACS versions remain unverified.
 Brightness tests pass against a simulator and through the integration client
 on the amplifier; Home Assistant UI testing on the device remains. See
 [protocol research](protocol-research.md) and

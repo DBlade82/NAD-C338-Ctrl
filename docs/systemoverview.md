@@ -4,7 +4,7 @@
 
 M3 implements UI setup, a TCP client, and a media player status entity. M4
 controls passed 99 automated tests, lint, mypy, and supervised hardware
-acceptance. Version `0.1.0-beta.3` is an experimental prerelease in the
+acceptance. Version `1.0.0` is the first stable release in the
 [repository](https://github.com/DBlade82/NAD-C338-Ctrl). Marketplace
 installation of beta.2 succeeded; update and HACS-specific installation
 validation remain in M5.

@@ -4,7 +4,7 @@ Network-only Home Assistant integration for the NAD C 338 amplifier. Google
 Cast remains independent. This project is not affiliated with or endorsed by
 NAD; its icon is an original generic cyberpunk op-amp illustration.
 
-> **Release status:** Version `0.1.0-beta.3` is an experimental prerelease.
+> **Release status:** Version `1.0.0` is the first stable release.
 > Core controls passed supervised hardware acceptance. The brightness client
 > passed simulated tests and supervised amplifier tests; the Home Assistant
 > brightness UI has not yet been verified on the amplifier.
@@ -36,13 +36,17 @@ volume unverified.
 
 ## Installation and setup
 
-The HACS ZIP is the attached `nad-c338.zip` release asset, not a
-GitHub-generated source archive. To install through HACS, add this repository
-as a custom integration repository, select the desired prerelease, and
-download it. Restart Home Assistant and add **NAD C 338** under
+The Marketplace/HACS ZIP is the attached `nad-c338.zip` release asset, not a
+GitHub-generated source archive. Add this repository as a custom integration
+repository and install the release. In Home Assistant 2026.11 and later, HACS
+is built in as the Marketplace; older versions use the HACS custom integration.
+Restart Home Assistant when prompted and add **NAD C 338** under
 **Settings > Devices & services**. Marketplace installation of beta.2 was
-confirmed after explicitly selecting the prerelease; HACS-specific installation
-and updates remain unverified.
+confirmed after explicitly selecting the prerelease; update and installation
+through older HACS versions remain unverified.
+
+After updating an integration, restart Home Assistant to apply the new code.
+Reloading its config entry is not a substitute for restarting after an update.
 
 For manual installation from a locally built ZIP or release asset:
 
