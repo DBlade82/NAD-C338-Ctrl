@@ -12,7 +12,7 @@ from .const import LOG_PREFIX
 
 type NadConfigEntry = ConfigEntry[NadClient]
 
-_PLATFORMS = [Platform.MEDIA_PLAYER]
+_PLATFORMS = [Platform.MEDIA_PLAYER, Platform.SELECT]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: NadConfigEntry) -> None:

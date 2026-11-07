@@ -30,6 +30,19 @@
       "already_configured": "This amplifier is already configured."
     }
   },
+  "entity": {
+    "select": {
+      "brightness": {
+        "name": "Display brightness",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "normal": "Normal",
+          "bright": "Bright"
+        }
+      }
+    }
+  },
   "options": {
     "step": {
       "init": {

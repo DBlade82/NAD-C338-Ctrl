@@ -21,6 +21,7 @@ EXPECTED_PACKAGE_FILES = {
     "config_flow.py",
     "const.py",
     "media_player.py",
+    "select.py",
     "manifest.json",
     "strings.json",
     "translations/en.json",
@@ -48,6 +49,11 @@ def test_release_archive_has_hacs_layout_and_hydrated_icon() -> None:
     with zipfile.ZipFile(BytesIO(archive_bytes)) as archive:
         names = set(archive.namelist())
         assert names == EXPECTED_PACKAGE_FILES
+        integration_modules = {
+            path.relative_to(INTEGRATION_DIR).as_posix()
+            for path in INTEGRATION_DIR.rglob("*.py")
+        }
+        assert integration_modules <= names
         assert not any(name.startswith("custom_components/") for name in names)
         assert archive.read("brand/icon.png").startswith(b"\x89PNG\r\n\x1a\n")
         project_root = INTEGRATION_DIR.parents[1]

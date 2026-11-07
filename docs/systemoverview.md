@@ -4,9 +4,10 @@
 
 M3 implements UI setup, a TCP client, and a media player status entity. M4
 controls passed 99 automated tests, lint, mypy, and supervised hardware
-acceptance. Version `0.1.0-beta.2` is an experimental prerelease in the
-[repository](https://github.com/DBlade82/NAD-C338-Ctrl). HACS installation and
-update validation remain in M5.
+acceptance. Version `0.1.0-beta.3` is an experimental prerelease in the
+[repository](https://github.com/DBlade82/NAD-C338-Ctrl). Marketplace
+installation of beta.2 succeeded; update and HACS-specific installation
+validation remain in M5.
 
 The integration communicates directly with a NAD C 338 over the local
 network. It coexists with, and does not replace or depend on, the Home Assistant
@@ -20,6 +21,7 @@ flowchart LR
     Flow --> Entry[Config entry]
     Entry --> Runtime[Per-device runtime]
     Runtime --> Entity[Media player entity]
+    Runtime --> Select[Brightness select entity]
     Runtime --> Client[Async C 338 protocol client]
     Client <-->|TCP status and commands| Amp[NAD C 338]
     Cast[Google Cast integration] <-->|Independent connection| Amp
@@ -31,6 +33,7 @@ flowchart LR
 | Integration lifecycle | Create and unload one runtime per config entry; cleanly close its tasks and connection. | `custom_components/nad_c338/__init__.py` |
 | Protocol client | Own the asynchronous connection, message parsing, command serialization, reconnect, and device state. | `custom_components/nad_c338/client.py` |
 | Media player entity | Expose power, source, volume, mute, availability, and device information to Home Assistant. | `custom_components/nad_c338/media_player.py` |
+| Brightness select entity | Expose reported display brightness levels and send changes. | `custom_components/nad_c338/select.py` |
 | UI text | Provide US English setup and option labels and the wake-volume warning. | `custom_components/nad_c338/strings.json` and `translations/en.json` |
 | Brand icon | Provide the integration's square Home Assistant icon, tracked with Git LFS. | `custom_components/nad_c338/brand/icon.png` |
 
@@ -136,13 +139,22 @@ and service errors identify the integration as well.
 
 ## Display brightness
 
-Display brightness control, including multiple levels and display off, is
-planned. The network commands, supported values, state reporting, and Home
-Assistant representation are not yet verified.
+The Home Assistant select exposes off, low, normal, and bright for reported
+values 0 through 3. Unknown or unreported brightness makes only the select
+unavailable. The client probes brightness on connection and processes updates.
+Commands are sent directly in standby rather than intentionally waking the
+amplifier. If the device unexpectedly wakes, the client attempts the usual
+post-wake volume check; a failed or canceled operation can leave power and
+volume unverified. No setter is blindly retried.
+
+Supervised tests using the integration client on the target amplifier verified
+all four values while on and in standby and restored the original brightness
+and on state. Home Assistant entity tests used a simulator; the Home Assistant
+UI on the amplifier remains unverified.
 
 ## Validation and release
 
-The merged automated suite has 99 passing tests; lint and mypy pass against
+The merged automated suite has 123 passing tests; lint and mypy pass against
 Home Assistant Core 2026.11.0. Supervised hardware acceptance covered wake,
 standby, all eight tested sources, mute/unmute, absolute and step volume no
 louder than -60 dB, ignored standby volume commands, source selection from
@@ -151,9 +163,8 @@ test verified lowering the limit to -70 dB from -64 dB and confirmed the
 post-wake clamp, then restored the original limit, source, mute state, and
 power-on state.
 
-M5 will verify actual HACS installation and updates, including delivery of the
-LFS icon. Local HACS metadata and a package builder exist, but that is not
-evidence of HACS validation.
+Marketplace installation of beta.2 succeeded. M5 will verify an update and
+HACS-specific installation, including delivery of the LFS icon.
 
 The icon is an original generic cyberpunk op-amp illustration. The project is
 not affiliated with NAD and is licensed GPL-3.0-or-later; that license grants

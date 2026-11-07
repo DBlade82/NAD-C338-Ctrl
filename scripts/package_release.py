@@ -20,6 +20,7 @@ INTEGRATION_FILES = (
     "config_flow.py",
     "const.py",
     "media_player.py",
+    "select.py",
     "manifest.json",
     "strings.json",
     "translations/en.json",

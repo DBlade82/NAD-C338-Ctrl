@@ -19,6 +19,7 @@ _MAX_BACKOFF = 60.0
 _STATUS_FIELDS = ("Power", "Volume", "Source", "Mute")
 _WAKE_TIMEOUT = 20.0
 _READY_INTERVAL = 0.2
+_BRIGHTNESS_PROBE_TIMEOUT = 1.0
 
 
 class NadConnectionError(Exception):
@@ -44,6 +45,7 @@ class NadState:
     mute: bool | None = None
     model: str | None = None
     version: str | None = None
+    brightness: int | None = None
 
 
 class NadClient:
@@ -66,6 +68,7 @@ class NadClient:
         self._supervisor_task: asyncio.Task[None] | None = None
         self._pending: dict[str, asyncio.Future[None]] = {}
         self._lock = asyncio.Lock()
+        self._brightness_echo_pending = False
         self._wake_clamp_written = False
         self._listeners: set[Callable[[], None]] = set()
         self._task_factory = task_factory or (
@@ -102,6 +105,7 @@ class NadClient:
                 raise NadModelError("The device is not a NAD C 338")
             for field in _STATUS_FIELDS:
                 await self._query(field)
+            await self._query_optional_brightness()
             try:
                 await self._query("Version")
             except NadConnectionError:
@@ -159,6 +163,16 @@ class NadClient:
     async def _query(self, field: str) -> None:
         async with self._lock:
             await self._query_locked(field)
+
+    async def _query_optional_brightness(self) -> None:
+        try:
+            async with self._lock:
+                await self._query_locked("Brightness", _BRIGHTNESS_PROBE_TIMEOUT)
+        except NadConnectionError:
+            if self._reader_task is None or self._reader_task.done():
+                raise
+            self._connected_writer()
+            _LOGGER.debug("%s Brightness not reported", LOG_PREFIX)
 
     @asynccontextmanager
     async def _command(self) -> AsyncIterator[None]:
@@ -412,6 +426,102 @@ class NadClient:
             if self.state.mute is not muted:
                 raise NadCommandError("Mute change not confirmed")
 
+    async def _brightness_wake_locked(
+        self, max_volume: float | None, maximum: float
+    ) -> None:
+        if max_volume is None:
+            _LOGGER.warning(
+                "%s Brightness command unexpectedly woke the amplifier; "
+                "audio may resume and no volume limit is configured",
+                LOG_PREFIX,
+            )
+        else:
+            _LOGGER.warning(
+                "%s Brightness command unexpectedly woke the amplifier; "
+                "audio may exceed the configured limit before it can be checked",
+                LOG_PREFIX,
+            )
+        self._wake_clamp_written = False
+        await self._confirm_wake_locked(max_volume, maximum)
+
+    async def _brightness_power_locked(
+        self, max_volume: float | None, maximum: float
+    ) -> bool:
+        """Check standby after a write, allowing time for an unexpected wake."""
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + _WAKE_TIMEOUT
+        while loop.time() < deadline:
+            if await self._wake_query_locked("Power", deadline):
+                if self.state.power is True:
+                    await self._brightness_wake_locked(max_volume, maximum)
+                    return True
+                if self.state.power is False:
+                    return False
+            await asyncio.sleep(min(_READY_INTERVAL, max(0, deadline - loop.time())))
+        raise NadConnectionError("Power not verified after brightness command")
+
+    async def async_set_brightness(
+        self, brightness: int, max_volume: float | None
+    ) -> None:
+        """Set brightness directly, including in standby, and verify its state."""
+        if type(brightness) is not int or brightness not in range(4):
+            raise NadCommandError("Invalid brightness")
+        maximum = self._maximum(max_volume)
+        async with self._command():
+            await self._query_locked("Power")
+            if self.state.power is None:
+                raise NadCommandError("Unknown power state")
+            standby = not self.state.power
+            standby_requested = standby
+            try:
+                self._brightness_echo_pending = True
+                try:
+                    await self._write_locked(
+                        "Brightness", str(brightness), barrier=False
+                    )
+                except NadConnectionError:
+                    if standby:
+                        try:
+                            await self._brightness_power_locked(max_volume, maximum)
+                        except NadConnectionError, NadCommandError:
+                            _LOGGER.warning(
+                                "%s Could not verify power or volume after the "
+                                "unconfirmed brightness command",
+                                LOG_PREFIX,
+                            )
+                    raise
+                finally:
+                    self._brightness_echo_pending = False
+                if standby:
+                    standby = not await self._brightness_power_locked(
+                        max_volume, maximum
+                    )
+                else:
+                    await self._query_locked("Power")
+                try:
+                    await self._query_locked("Brightness")
+                except NadConnectionError:
+                    if not standby:
+                        raise
+                    standby = not await self._brightness_power_locked(
+                        max_volume, maximum
+                    )
+                    if standby:
+                        raise
+                    await self._query_locked("Brightness")
+                if standby:
+                    await self._brightness_power_locked(max_volume, maximum)
+                if self.state.brightness != brightness:
+                    raise NadCommandError("Brightness change not confirmed")
+            except NadConnectionError, NadCommandError, asyncio.CancelledError:
+                if standby_requested:
+                    _LOGGER.warning(
+                        "%s Brightness command is unverified and may have woken "
+                        "the amplifier; check power and volume",
+                        LOG_PREFIX,
+                    )
+                raise
+
     async def _read_loop(self, reader: asyncio.StreamReader) -> None:
         try:
             while line := await reader.readline():
@@ -429,10 +539,19 @@ class NadClient:
         try:
             text = line.replace(b"\x00", b"").decode("ascii").strip()
             key, value = text.split("=", 1)
-            if not key.startswith("Main.") or not value:
+            if not key.startswith("Main."):
                 return
             field = key.removeprefix("Main.")
-            if field in ("Power", "Mute"):
+            if field == "Brightness":
+                if self._brightness_echo_pending:
+                    self._brightness_echo_pending = False
+                else:
+                    self.state.brightness = (
+                        int(value) if value in ("0", "1", "2", "3") else None
+                    )
+            elif not value:
+                return
+            elif field in ("Power", "Mute"):
                 if value not in ("On", "Off"):
                     return
                 setattr(self.state, field.lower(), value == "On")

@@ -4,34 +4,45 @@ Network-only Home Assistant integration for the NAD C 338 amplifier. Google
 Cast remains independent. This project is not affiliated with or endorsed by
 NAD; its icon is an original generic cyberpunk op-amp illustration.
 
-> **Release status:** M4 controls passed 99 automated tests and supervised
-> hardware acceptance. Version `0.1.0-beta.2` is an experimental prerelease.
-> HACS installation and update have not been verified.
+> **Release status:** Version `0.1.0-beta.3` is an experimental prerelease.
+> Core controls passed supervised hardware acceptance. The brightness client
+> passed simulated tests and supervised amplifier tests; the Home Assistant
+> brightness UI has not yet been verified on the amplifier.
+> Marketplace installation of beta.2 succeeded; update and HACS-specific
+> installation remain unverified.
 
 ## Features
 
 - UI setup and host reconfiguration; automatic reconnect and unavailable state.
 - Power on and standby, source selection, mute, and volume set and step.
 - Status reporting for power, source, volume, mute, and available firmware.
+- Display brightness select: off, low, normal, and bright, when reported by
+  the amplifier. The integration attempts changes directly in standby.
 - Optional software maximum volume and configurable volume increment (default
   2 dB). The actual dB value remains available even above the maximum.
 - Eight tested sources: Stream, Wireless, TV, Phono, Coax1, Coax2, Opt1, Opt2.
   Selecting a source from standby wakes the amplifier. Volume commands in
   standby are ignored.
 
-Display brightness control is planned and is not included in this prerelease.
-
 **Volume safety:** The maximum applies to integration commands and is checked
 after wake, not to Cast, the remote, or other controllers. Audio may briefly
 exceed it on wake. If communication fails or an operation is canceled after
 wake, the amplifier may remain on and the limit may remain unverified. Lowering
 the maximum alone does not immediately change the current volume.
+Brightness changes in standby do not deliberately wake the amplifier. If a
+device wakes unexpectedly, audio may resume above the configured limit before
+it can be checked; communication failure or cancellation can leave power and
+volume unverified.
 
 ## Installation and setup
 
-The intended HACS ZIP is the attached `nad-c338.zip` release asset, not a
-GitHub-generated source archive. HACS install and update using that asset
-remain unverified.
+The HACS ZIP is the attached `nad-c338.zip` release asset, not a
+GitHub-generated source archive. To install through HACS, add this repository
+as a custom integration repository, select the desired prerelease, and
+download it. Restart Home Assistant and add **NAD C 338** under
+**Settings > Devices & services**. Marketplace installation of beta.2 was
+confirmed after explicitly selecting the prerelease; HACS-specific installation
+and updates remain unverified.
 
 For manual installation from a locally built ZIP or release asset:
 

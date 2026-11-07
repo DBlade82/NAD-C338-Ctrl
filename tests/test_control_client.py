@@ -31,6 +31,7 @@ class ControlDevice:
             "Source": "Wireless",
             "Mute": "Off",
             "Version": "1.76",
+            "Brightness": "2",
         }
         self.requests: list[str] = []
         self.ignore_queries: set[str] = set()
@@ -44,6 +45,7 @@ class ControlDevice:
         self.source_query_count = 0
         self.restore_volume_on_source: tuple[int, str] | None = None
         self.block_query: str | None = None
+        self.block_query_after_write: str | None = None
         self.query_started = asyncio.Event()
         self.release_query = asyncio.Event()
         self.writers: set[asyncio.StreamWriter] = set()
@@ -52,6 +54,8 @@ class ControlDevice:
         self.woke_at = 0.0
         self.drop_wake_queries: set[int] = set()
         self.wake_query_count = 0
+        self.brightness_wakes = False
+        self.brightness_query_wakes = False
 
     async def read_command(self, reader: asyncio.StreamReader) -> str:
         """Parse complete known commands without waiting for a later query."""
@@ -72,6 +76,8 @@ class ControlDevice:
         elif field == "Volume":
             value = (await reader.readuntil(b".")).decode("ascii")
             value += (await reader.readexactly(1)).decode("ascii")
+        elif field == "Brightness":
+            value = (await reader.readexactly(1)).decode("ascii")
         else:
             raise ValueError(f"Unexpected write field: {field}")
         return f"Main.{field}={value}"
@@ -88,6 +94,13 @@ class ControlDevice:
                 part = command.removeprefix("Main.")
                 if part.endswith("?"):
                     field = part[:-1]
+                    if field == "Brightness" and self.brightness_query_wakes:
+                        self.brightness_query_wakes = False
+                        self.values["Power"] = "On"
+                        self.woken = True
+                        self.woke_at = asyncio.get_running_loop().time()
+                        if self.wake_volume is not None:
+                            self.values["Volume"] = self.wake_volume
                     if field == self.block_query:
                         self.query_started.set()
                         await self.release_query.wait()
@@ -118,6 +131,12 @@ class ControlDevice:
                     field, value = part.split("=", 1)
                     if field not in self.ignore_writes:
                         self.values[field] = value
+                        if field == "Brightness" and self.brightness_wakes:
+                            self.values["Power"] = "On"
+                            self.woken = True
+                            self.woke_at = asyncio.get_running_loop().time()
+                            if self.wake_volume is not None:
+                                self.values["Volume"] = self.wake_volume
                         if field == "Power" and value == "On":
                             self.woken = True
                             self.woke_at = asyncio.get_running_loop().time()
@@ -138,6 +157,8 @@ class ControlDevice:
                         writer.write(f"Main.{field}={value}\r\n".encode())
                         await writer.drain()
                         self.echo_sent.set()
+                        if self.block_query_after_write is not None:
+                            self.block_query = self.block_query_after_write
                 await writer.drain()
         except asyncio.IncompleteReadError, ConnectionError:
             pass

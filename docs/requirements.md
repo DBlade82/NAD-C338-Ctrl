@@ -25,12 +25,12 @@ yet fully met.
 | FR-09 | Select any amplifier source. | Every source offered by the amplifier can be selected in Home Assistant and the reported source reflects the result. Selecting a source in standby wakes the amplifier before applying the source. | In progress | `const.py`, `client.py`, `media_player.py` (eight tested sources supported; a complete discovery mechanism is unverified) |
 | FR-10 | Configure an optional maximum volume in dB through the UI. | The default has no integration-imposed maximum. The slider scales to the effective maximum, and commands exceeding a configured limit are clamped to it. Lowering the limit does not immediately change the current volume; the limit applies to subsequent commands and after wake-up. | Done | `config_flow.py`, `client.py`, `media_player.py` |
 | FR-11 | Configure the volume increment in dB through the UI. | Volume up and down use the configured increment. The default increment is 2 dB. | Done | `config_flow.py`, `client.py`, `media_player.py` |
-| FR-12 | Distribute the integration through HACS. | Users can install and update the integration through HACS. | Open | `hacs.json`, `scripts/package_release.py` (implemented locally; HACS install/update unverified) |
+| FR-12 | Distribute the integration through HACS. | Users can install and update the integration through HACS. | In progress | `hacs.json`, `scripts/package_release.py` (Marketplace beta.2 installation confirmed; update and HACS-specific installation unverified) |
 | FR-13 | Support current Home Assistant releases. | The integration is tested against Home Assistant Core 2026.11.0 and maintained and tested against current releases. Compatibility with future breaking changes cannot be guaranteed in advance. | In progress | `pyproject.toml`, `tests/` (Core 2026.11.0 tested; ongoing maintenance remains) |
 | FR-14 | Expose mute and unmute controls. | Home Assistant can mute and unmute the amplifier, and the reported mute state reflects the device. | Done | `client.py`, `media_player.py` |
 | FR-15 | Avoid log spam when the amplifier is unreachable. | After an established connection is lost, log one warning per outage, not one per retry; do not report recovery until a full status poll succeeds. Home Assistant manages initial setup retry logging separately. | Done | `client.py` |
 | FR-16 | Make integration log entries identifiable. | Every integration-authored log message includes `[NAD-C338]`; errors presented to Home Assistant also identify the integration. | Done | `client.py`, `__init__.py`, `media_player.py` |
-| FR-17 | Set the amplifier display brightness. | Home Assistant can select the amplifier's available display brightness levels, including display off. | Open | TBD; protocol and supported levels require verification |
+| FR-17 | Set the amplifier display brightness. | Home Assistant can select the amplifier's available display brightness levels, including display off. | In progress | `client.py`, `select.py` (simulated Home Assistant tests and supervised client tests on device passed; Home Assistant UI on device unverified) |
 
 ## Project requirements
 
@@ -57,7 +57,7 @@ The following links identify implementation and planned responsibilities.
 | FR-12, PR-06 | [Validation and release](systemoverview.md#validation-and-release); `hacs.json`, `scripts/package_release.py`, and HACS installation/update validation. |
 | FR-13 | [Validation and release](systemoverview.md#validation-and-release); compatibility testing and maintenance. |
 | FR-15, FR-16 | [Logging and availability](systemoverview.md#logging-and-availability); `client.py` and Home Assistant error messages. |
-| FR-17 | [Display brightness](systemoverview.md#display-brightness); protocol and Home Assistant control to be determined. |
+| FR-17 | [Display brightness](systemoverview.md#display-brightness); `client.py` and `select.py`. |
 | PR-01 through PR-04 | Git configuration, `.gitignore`, `.pre-commit-config.yaml`, and project documentation. |
 | PR-05, PR-07 | [Implementation choice](systemoverview.md#implementation-choice) and [protocol research](protocol-research.md). |
 | PR-08 | [Validation and release](systemoverview.md#validation-and-release); integration manifest, Git tags, and GitHub Releases. |

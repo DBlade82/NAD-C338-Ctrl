@@ -18,10 +18,11 @@ not ready for general use can be marked as prereleases.
 
 ## Current status
 
-M1 through M4 are complete. M4 controls passed 99 automated tests, lint, mypy,
-and supervised hardware acceptance. Version `0.1.0-beta.2` is an experimental
-prerelease. Local HACS ZIP configuration and packaging are implemented, but
-HACS install/update remain unverified. See
+M1 through M4 are complete. M4 controls passed supervised hardware acceptance.
+Version `0.1.0-beta.3` is an experimental prerelease. Marketplace installation
+of beta.2 succeeded; update and HACS-specific installation remain unverified.
+Brightness tests pass against a simulator and through the integration client
+on the amplifier; Home Assistant UI testing on the device remains. See
 [protocol research](protocol-research.md) and
 [system overview](systemoverview.md) for evidence and limitations.
 
@@ -122,8 +123,8 @@ in protocol research.
 
 ### M5: Package, validate, and release
 
-**Status:** In progress. Local HACS ZIP configuration and package builder are
-implemented; actual HACS installation/update remain unverified.
+**Status:** In progress. Marketplace installation of beta.2 succeeded.
+Update and HACS-specific installation remain unverified.
 
 - Verify the local HACS metadata and ZIP builder; complete installation and
   setup instructions, troubleshooting, architecture overview, and
@@ -145,7 +146,9 @@ versions and known limitations.
 
 ### M6: Display brightness
 
-**Status:** Open.
+**Status:** In progress. All four levels were verified by integration client
+tests on the target amplifier, both on and in standby, and by simulated Home
+Assistant tests. The Home Assistant UI on the device remains unverified.
 
 - Establish whether network control supports display brightness, its available
   levels including off, and whether the current level can be queried.
@@ -164,7 +167,8 @@ selected through Home Assistant and verified on the target device.
 - Network control and eight source names have been observed on the target
   device. A source-list discovery mechanism and some protocol details remain
   unverified; see the implementation follow-ups in the protocol research.
-- Network support and exact values for display brightness are not yet verified.
+- The target amplifier accepted all four brightness values while on and in
+  standby. Other firmware may behave differently, including unexpected wake.
 - The software volume limit does not constrain Cast, the remote, or other
   controllers. Wake-up may briefly restore a loud volume before reduction.
   Tested standby mute did not persist across wake-up, and a standby volume
@@ -177,7 +181,8 @@ selected through Home Assistant and verified on the target device.
   attached release ZIP, but its delivery and install/update remain to be tested.
 - The project uses an original generic cyberpunk op-amp icon and is not
   affiliated with NAD. GPL-3.0-or-later does not grant trademark rights.
-- HACS prerelease selection and installation remain unverified.
+- Marketplace prerelease selection and beta.2 installation succeeded; update
+  and HACS-specific installation remain unverified.
 - Automated secret scanning and ignore rules reduce risk but do not guarantee
   that secrets or local paths are absent; staged changes require review.
 

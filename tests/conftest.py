@@ -20,6 +20,7 @@ class FakeAmplifier:
             "Source": "Wireless",
             "Mute": "Off",
             "Version": "1.76",
+            "Brightness": "2",
         }
         self.requests: list[bytes] = []
         self.writers: set[asyncio.StreamWriter] = set()
