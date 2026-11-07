@@ -1,0 +1,28 @@
+# Python environments and generated files
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Local Home Assistant and development data
+.storage/
+secrets.yaml
+secrets.yml
+.env
+.env.*
+!.env.example
+*.log
+.vscode/*
+!.vscode/launch.json
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db

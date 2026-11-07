@@ -1,0 +1,52 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to NAD C 338",
+        "description": "Network standby must be enabled for network wake-up.",
+        "data": {
+          "host": "Host"
+        },
+        "data_description": {
+          "host": "The amplifier's hostname or IP address."
+        }
+      },
+      "reconfigure": {
+        "title": "Change amplifier address",
+        "data": {
+          "host": "Host"
+        },
+        "data_description": {
+          "host": "The amplifier's hostname or IP address."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not connect to the amplifier.",
+      "invalid_model": "The device is not a supported NAD C 338.",
+      "invalid_host": "Enter a hostname or IP address."
+    },
+    "abort": {
+      "already_configured": "This amplifier is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Volume settings",
+        "description": "Audio may briefly exceed the maximum volume on wake-up; other controllers are not limited.",
+        "data": {
+          "max_volume": "Maximum volume (dB)",
+          "volume_step": "Volume increment (dB)"
+        },
+        "data_description": {
+          "max_volume": "Leave unset to use the device maximum.",
+          "volume_step": "Volume change for each volume up or down action."
+        }
+      }
+    },
+    "error": {
+      "invalid_volume": "Enter a value within the allowed range in 0.5 dB increments."
+    }
+  }
+}
