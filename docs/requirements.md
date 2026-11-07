@@ -30,6 +30,7 @@ yet fully met.
 | FR-14 | Expose mute and unmute controls. | Home Assistant can mute and unmute the amplifier, and the reported mute state reflects the device. | Done | `client.py`, `media_player.py` |
 | FR-15 | Avoid log spam when the amplifier is unreachable. | After an established connection is lost, log one warning per outage, not one per retry; do not report recovery until a full status poll succeeds. Home Assistant manages initial setup retry logging separately. | Done | `client.py` |
 | FR-16 | Make integration log entries identifiable. | Every integration-authored log message includes `[NAD-C338]`; errors presented to Home Assistant also identify the integration. | Done | `client.py`, `__init__.py`, `media_player.py` |
+| FR-17 | Set the amplifier display brightness. | Home Assistant can select the amplifier's available display brightness levels, including display off. | Open | TBD; protocol and supported levels require verification |
 
 ## Project requirements
 
@@ -56,6 +57,7 @@ The following links identify implementation and planned responsibilities.
 | FR-12, PR-06 | [Validation and release](systemoverview.md#validation-and-release); `hacs.json`, `scripts/package_release.py`, and HACS installation/update validation. |
 | FR-13 | [Validation and release](systemoverview.md#validation-and-release); compatibility testing and maintenance. |
 | FR-15, FR-16 | [Logging and availability](systemoverview.md#logging-and-availability); `client.py` and Home Assistant error messages. |
+| FR-17 | [Display brightness](systemoverview.md#display-brightness); protocol and Home Assistant control to be determined. |
 | PR-01 through PR-04 | Git configuration, `.gitignore`, `.pre-commit-config.yaml`, and project documentation. |
 | PR-05, PR-07 | [Implementation choice](systemoverview.md#implementation-choice) and [protocol research](protocol-research.md). |
 | PR-08 | [Validation and release](systemoverview.md#validation-and-release); integration manifest, Git tags, and GitHub Releases. |

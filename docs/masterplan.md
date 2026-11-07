@@ -143,11 +143,28 @@ versions and known limitations.
 
 **Requirements:** FR-01 through FR-14; PR-01 through PR-08.
 
+### M6: Display brightness
+
+**Status:** Open.
+
+- Establish whether network control supports display brightness, its available
+  levels including off, and whether the current level can be queried.
+- Choose an appropriate Home Assistant control and implement supported levels
+  without inventing state when the device cannot report it.
+- Test supported levels and display-off behavior with a simulator and, with
+  authorization, the target amplifier.
+
+**Exit criteria:** Supported display brightness levels, including off, can be
+selected through Home Assistant and verified on the target device.
+
+**Requirement:** FR-17.
+
 ## Risks and decisions
 
 - Network control and eight source names have been observed on the target
   device. A source-list discovery mechanism and some protocol details remain
   unverified; see the implementation follow-ups in the protocol research.
+- Network support and exact values for display brightness are not yet verified.
 - The software volume limit does not constrain Cast, the remote, or other
   controllers. Wake-up may briefly restore a loud volume before reduction.
   Tested standby mute did not persist across wake-up, and a standby volume
@@ -160,7 +177,7 @@ versions and known limitations.
   attached release ZIP, but its delivery and install/update remain to be tested.
 - The project uses an original generic cyberpunk op-amp icon and is not
   affiliated with NAD. GPL-3.0-or-later does not grant trademark rights.
-- The clean repository has a configured origin but no published M4 prerelease.
+- HACS prerelease selection and installation remain unverified.
 - Automated secret scanning and ignore rules reduce risk but do not guarantee
   that secrets or local paths are absent; staged changes require review.
 

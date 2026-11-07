@@ -19,6 +19,8 @@ NAD; its icon is an original generic cyberpunk op-amp illustration.
   Selecting a source from standby wakes the amplifier. Volume commands in
   standby are ignored.
 
+Display brightness control is planned and is not included in this prerelease.
+
 **Volume safety:** The maximum applies to integration commands and is checked
 after wake, not to Cast, the remote, or other controllers. Audio may briefly
 exceed it on wake. If communication fails or an operation is canceled after

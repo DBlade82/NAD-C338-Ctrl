@@ -134,6 +134,12 @@ If the amplifier is unreachable during initial integration setup, Home
 Assistant manages setup retries and their logging. Integration-provided setup
 and service errors identify the integration as well.
 
+## Display brightness
+
+Display brightness control, including multiple levels and display off, is
+planned. The network commands, supported values, state reporting, and Home
+Assistant representation are not yet verified.
+
 ## Validation and release
 
 The merged automated suite has 99 passing tests; lint and mypy pass against
