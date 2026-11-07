@@ -4,7 +4,7 @@ Network-only Home Assistant integration for the NAD C 338 amplifier. Google
 Cast remains independent. This project is not affiliated with or endorsed by
 NAD; its icon is an original generic cyberpunk op-amp illustration.
 
-> **Release status:** Version `1.0.0` is the first stable release.
+> **Release status:** Version `1.1.0` includes optional Chromecast cover art.
 > Core controls passed supervised hardware acceptance. The brightness client
 > passed simulated tests and supervised amplifier tests; the Home Assistant
 > brightness UI has not yet been verified on the amplifier.
@@ -18,6 +18,8 @@ NAD; its icon is an original generic cyberpunk op-amp illustration.
 - Status reporting for power, source, volume, mute, and available firmware.
 - Display brightness select: off, low, normal, and bright, when reported by
   the amplifier. The integration attempts changes directly in standby.
+- Optional cover art from a selected Google Cast media player while it is
+  playing, paused, or buffering. Actual Cast and UI verification is pending.
 - Optional software maximum volume and configurable volume increment (default
   2 dB). The actual dB value remains available even above the maximum.
 - Eight tested sources: Stream, Wireless, TV, Phono, Coax1, Coax2, Opt1, Opt2.
@@ -58,7 +60,8 @@ For manual installation from a locally built ZIP or release asset:
 2. Restart Home Assistant. Under **Settings > Devices & services**, add
    **NAD C 338** and enter the amplifier's hostname or IP address.
 3. Use the integration options to configure the optional maximum and volume
-   increment. Leave the maximum unset to use the device maximum.
+   increment. Leave the maximum unset to use the device maximum. Optionally
+   select a Google Cast media player to display its cover art.
 
 The amplifier must be network reachable. Network standby must be enabled for
 wake; ECO standby and the rear power switch can prevent network wake. Use

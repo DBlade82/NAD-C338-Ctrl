@@ -31,6 +31,7 @@ yet fully met.
 | FR-15 | Avoid log spam when the amplifier is unreachable. | After an established connection is lost, log one warning per outage, not one per retry; do not report recovery until a full status poll succeeds. Home Assistant manages initial setup retry logging separately. | Done | `client.py` |
 | FR-16 | Make integration log entries identifiable. | Every integration-authored log message includes `[NAD-C338]`; errors presented to Home Assistant also identify the integration. | Done | `client.py`, `__init__.py`, `media_player.py` |
 | FR-17 | Set the amplifier display brightness. | Home Assistant can select the amplifier's available display brightness levels, including display off. | In progress | `client.py`, `select.py` (simulated Home Assistant tests and supervised client tests on device passed; Home Assistant UI on device unverified) |
+| FR-18 | Display Chromecast cover art. | An optionally selected Google Cast media player supplies its current cover to the NAD media player while active; missing or inactive artwork is not shown. | In progress | `config_flow.py`, `media_player.py` (simulated Home Assistant tests; real Cast and UI verification pending) |
 
 ## Project requirements
 
@@ -58,6 +59,7 @@ The following links identify implementation and planned responsibilities.
 | FR-13 | [Validation and release](systemoverview.md#validation-and-release); compatibility testing and maintenance. |
 | FR-15, FR-16 | [Logging and availability](systemoverview.md#logging-and-availability); `client.py` and Home Assistant error messages. |
 | FR-17 | [Display brightness](systemoverview.md#display-brightness); `client.py` and `select.py`. |
+| FR-18 | [Chromecast cover art](systemoverview.md#chromecast-cover-art); `config_flow.py` and `media_player.py`. |
 | PR-01 through PR-04 | Git configuration, `.gitignore`, `.pre-commit-config.yaml`, and project documentation. |
 | PR-05, PR-07 | [Implementation choice](systemoverview.md#implementation-choice) and [protocol research](protocol-research.md). |
 | PR-08 | [Validation and release](systemoverview.md#validation-and-release); integration manifest, Git tags, and GitHub Releases. |

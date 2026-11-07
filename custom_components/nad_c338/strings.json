@@ -50,16 +50,19 @@
         "description": "Audio may briefly exceed the maximum volume on wake-up; other controllers are not limited.",
         "data": {
           "max_volume": "Maximum volume (dB)",
-          "volume_step": "Volume increment (dB)"
+          "volume_step": "Volume increment (dB)",
+          "cast_entity": "Chromecast media player"
         },
         "data_description": {
           "max_volume": "Leave unset to use the device maximum.",
-          "volume_step": "Volume change for each volume up or down action."
+          "volume_step": "Volume change for each volume up or down action.",
+          "cast_entity": "Optional Google Cast media player providing the current cover image."
         }
       }
     },
     "error": {
-      "invalid_volume": "Enter a value within the allowed range in 0.5 dB increments."
+      "invalid_volume": "Enter a value within the allowed range in 0.5 dB increments.",
+      "invalid_cast_entity": "Select a Google Cast media player."
     }
   }
 }

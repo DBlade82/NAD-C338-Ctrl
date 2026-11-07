@@ -21,7 +21,12 @@ from homeassistant.helpers import area_registry, device_registry, entity_registr
 import custom_components.nad_c338 as integration
 from custom_components.nad_c338 import config_flow
 from custom_components.nad_c338.client import NadClient, NadConnectionError
-from custom_components.nad_c338.const import CONF_MAX_VOLUME, CONF_VOLUME_STEP, DOMAIN
+from custom_components.nad_c338.const import (
+    CONF_CAST_ENTITY,
+    CONF_MAX_VOLUME,
+    CONF_VOLUME_STEP,
+    DOMAIN,
+)
 
 
 @pytest_asyncio.fixture
@@ -248,6 +253,106 @@ async def test_invalid_model_and_reconfigure_duplicate(
     await hass.async_block_till_done()
     for entry in hass.config_entries.async_entries(DOMAIN):
         assert await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_cast_cover_options_and_live_updates(
+    hass: HomeAssistant,
+    amplifier: tuple[FakeAmplifier, int],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Track only the selected Cast entity and clear artwork when inactive."""
+    device, port = amplifier
+    device.values["Power"] = "On"
+    use_simulated_device(monkeypatch, port)
+    registry = entity_registry.async_get(hass)
+    cast = registry.async_get_or_create(
+        "media_player", "cast", "test-cast", suggested_object_id="cast_test"
+    )
+    hass.states.async_set(
+        cast.entity_id, "playing", {"entity_picture": "https://example.com/one.jpg"}
+    )
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "user"}
+    )
+    await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_HOST: "localhost"}
+    )
+    await hass.async_block_till_done()
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
+    nad = registry.async_get_entity_id("media_player", DOMAIN, entry.entry_id)
+    assert nad is not None
+    assert "entity_picture" not in entity_state(hass, nad).attributes
+
+    options = await hass.config_entries.options.async_init(entry.entry_id)
+    options = await hass.config_entries.options.async_configure(
+        options["flow_id"], {CONF_VOLUME_STEP: 2.0, CONF_CAST_ENTITY: nad}
+    )
+    assert options["type"] is FlowResultType.FORM
+    assert options["errors"] is not None
+    assert options["errors"][CONF_CAST_ENTITY] == "invalid_cast_entity"
+    options = await hass.config_entries.options.async_configure(
+        options["flow_id"],
+        {
+            CONF_VOLUME_STEP: 2.0,
+            CONF_MAX_VOLUME: -40.0,
+            CONF_CAST_ENTITY: cast.entity_id,
+        },
+    )
+    assert options["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert entity_state(hass, nad).attributes["entity_picture"] == (
+        "https://example.com/one.jpg"
+    )
+    assert entry.options[CONF_MAX_VOLUME] == -40.0
+
+    await device.broadcast(b"Main.Power=Off\r\n")
+    async with asyncio.timeout(2):
+        while entity_state(hass, nad).state != "off":
+            await asyncio.sleep(0.01)
+    assert "entity_picture" not in entity_state(hass, nad).attributes
+    await device.broadcast(b"Main.Power=On\r\n")
+    async with asyncio.timeout(2):
+        while entity_state(hass, nad).state != "on":
+            await asyncio.sleep(0.01)
+    assert entity_state(hass, nad).attributes["entity_picture"] == (
+        "https://example.com/one.jpg"
+    )
+
+    proxy = "/api/media_player_proxy/media_player.cast_test?token=abc&cache=2"
+    hass.states.async_set(
+        cast.entity_id,
+        "paused",
+        {
+            "entity_picture": "http://example.com/remote.jpg",
+            "entity_picture_local": proxy,
+        },
+    )
+    await hass.async_block_till_done()
+    assert entity_state(hass, nad).attributes["entity_picture"] == proxy
+    hass.states.async_set(cast.entity_id, "unavailable", {"entity_picture": proxy})
+    await hass.async_block_till_done()
+    assert "entity_picture" not in entity_state(hass, nad).attributes
+    hass.states.async_set(cast.entity_id, "idle", {"entity_picture": proxy})
+    await hass.async_block_till_done()
+    assert "entity_picture" not in entity_state(hass, nad).attributes
+    hass.states.async_set(cast.entity_id, "playing", {"entity_picture": proxy})
+    await hass.async_block_till_done()
+    assert entity_state(hass, nad).attributes["entity_picture"] == proxy
+    hass.states.async_remove(cast.entity_id)
+    await hass.async_block_till_done()
+    assert "entity_picture" not in entity_state(hass, nad).attributes
+
+    options = await hass.config_entries.options.async_init(entry.entry_id)
+    options = await hass.config_entries.options.async_configure(
+        options["flow_id"], {CONF_VOLUME_STEP: 2.0, CONF_MAX_VOLUME: -40.0}
+    )
+    assert options["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert CONF_CAST_ENTITY not in entry.options
+    hass.states.async_set(cast.entity_id, "playing", {"entity_picture": proxy})
+    await hass.async_block_till_done()
+    assert "entity_picture" not in entity_state(hass, nad).attributes
+    assert await hass.config_entries.async_unload(entry.entry_id)
 
 
 async def test_initial_connection_failure_requests_retry(

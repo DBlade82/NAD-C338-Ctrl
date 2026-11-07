@@ -4,7 +4,7 @@
 
 M3 implements UI setup, a TCP client, and a media player status entity. M4
 controls passed 99 automated tests, lint, mypy, and supervised hardware
-acceptance. Version `1.0.0` is the first stable release in the
+acceptance. Version `1.1.0` includes Chromecast cover art in the
 [repository](https://github.com/DBlade82/NAD-C338-Ctrl). Marketplace
 installation of beta.2 succeeded; update and HACS-specific installation
 validation remain in M5.
@@ -23,6 +23,7 @@ flowchart LR
     Runtime --> Entity[Media player entity]
     Runtime --> Select[Brightness select entity]
     Runtime --> Client[Async C 338 protocol client]
+    Entity -.->|Optional artwork state| CastEntity[Google Cast media player]
     Client <-->|TCP status and commands| Amp[NAD C 338]
     Cast[Google Cast integration] <-->|Independent connection| Amp
 ```
@@ -151,6 +152,17 @@ Supervised tests using the integration client on the target amplifier verified
 all four values while on and in standby and restored the original brightness
 and on state. Home Assistant entity tests used a simulator; the Home Assistant
 UI on the amplifier remains unverified.
+
+## Chromecast cover art
+
+The options flow can associate a Google Cast media player with the NAD media
+player. When the amplifier is on and the Cast entity is playing, paused, or
+buffering, the NAD entity exposes the Cast entity's current artwork, preferring
+`entity_picture_local` when available and otherwise using `entity_picture`.
+It subscribes to picture and playback-state changes and clears stale artwork
+when the Cast entity becomes inactive or unavailable. The image remains served
+by its original provider, including Home Assistant's Cast image proxy when
+used. This does not control Cast or infer the amplifier's selected source.
 
 ## Validation and release
 

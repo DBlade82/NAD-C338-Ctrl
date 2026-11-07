@@ -19,7 +19,7 @@ not ready for general use can be marked as prereleases.
 ## Current status
 
 M1 through M4 are complete. M4 controls passed supervised hardware acceptance.
-Version `1.0.0` is the first stable release. Marketplace installation of beta.2
+Version `1.1.0` adds optional Chromecast cover art. Marketplace installation of beta.2
 succeeded; update and installation through older HACS versions remain unverified.
 Brightness tests pass against a simulator and through the integration client
 on the amplifier; Home Assistant UI testing on the device remains. See
@@ -161,6 +161,14 @@ Assistant tests. The Home Assistant UI on the device remains unverified.
 selected through Home Assistant and verified on the target device.
 
 **Requirement:** FR-17.
+
+### M7: Chromecast cover art
+
+**Status:** In progress. Optional Cast entity selection and cover updates are
+implemented and tested with simulated Home Assistant states; actual Cast and
+Home Assistant UI validation remain.
+
+**Requirement:** FR-18.
 
 ## Risks and decisions
 

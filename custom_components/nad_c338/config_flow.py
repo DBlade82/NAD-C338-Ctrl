@@ -11,7 +11,10 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import CONF_HOST
 from homeassistant.core import callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.selector import (
+    EntitySelector,
+    EntitySelectorConfig,
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
@@ -19,6 +22,7 @@ from homeassistant.helpers.selector import (
 
 from .client import NadClient, NadConnectionError, NadModelError
 from .const import (
+    CONF_CAST_ENTITY,
     CONF_MAX_VOLUME,
     CONF_VOLUME_STEP,
     DEFAULT_VOLUME_STEP,
@@ -140,14 +144,25 @@ class NadOptionsFlow(config_entries.OptionsFlowWithReload):
         if user_input is not None:
             maximum = user_input.get(CONF_MAX_VOLUME)
             step = user_input.get(CONF_VOLUME_STEP, DEFAULT_VOLUME_STEP)
+            cast_entity = user_input.get(CONF_CAST_ENTITY)
             if maximum is not None and not _valid_step(maximum, MIN_VOLUME, MAX_VOLUME):
                 errors[CONF_MAX_VOLUME] = "invalid_volume"
             if not _valid_step(step, 0.5, MAX_VOLUME - MIN_VOLUME):
                 errors[CONF_VOLUME_STEP] = "invalid_volume"
+            if cast_entity is not None:
+                registered = er.async_get(self.hass).async_get(cast_entity)
+                if (
+                    registered is None
+                    or registered.domain != "media_player"
+                    or registered.platform != "cast"
+                ):
+                    errors[CONF_CAST_ENTITY] = "invalid_cast_entity"
             if not errors:
                 data = {CONF_VOLUME_STEP: float(step)}
                 if maximum is not None:
                     data[CONF_MAX_VOLUME] = float(maximum)
+                if cast_entity is not None:
+                    data[CONF_CAST_ENTITY] = cast_entity
                 return self.async_create_entry(data=data)
 
         schema = vol.Schema(
@@ -168,6 +183,11 @@ class NadOptionsFlow(config_entries.OptionsFlowWithReload):
                         max=MAX_VOLUME - MIN_VOLUME,
                         step=0.5,
                         mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(CONF_CAST_ENTITY): EntitySelector(
+                    EntitySelectorConfig(
+                        filter={"domain": "media_player", "integration": "cast"}
                     )
                 ),
             }

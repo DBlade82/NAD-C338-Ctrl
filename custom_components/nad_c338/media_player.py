@@ -10,14 +10,19 @@ from homeassistant.components.media_player import (
     MediaPlayerEntityFeature,
     MediaPlayerState,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Event, HomeAssistant, State, callback
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import (
+    EventStateChangedData,
+    async_track_state_change_event,
+)
 
 from . import NadConfigEntry
 from .client import NadClient, NadCommandError, NadConnectionError
 from .const import (
+    CONF_CAST_ENTITY,
     CONF_MAX_VOLUME,
     CONF_VOLUME_STEP,
     DEFAULT_VOLUME_STEP,
@@ -57,6 +62,7 @@ class NadMediaPlayer(MediaPlayerEntity):
     def __init__(self, entry: NadConfigEntry) -> None:
         """Initialize the entity."""
         self._client: NadClient = entry.runtime_data
+        self._cast_entity: str | None = entry.options.get(CONF_CAST_ENTITY)
         self._maximum: float | None = entry.options.get(CONF_MAX_VOLUME)
         self._volume_step: float = entry.options.get(
             CONF_VOLUME_STEP, DEFAULT_VOLUME_STEP
@@ -75,6 +81,36 @@ class NadMediaPlayer(MediaPlayerEntity):
         """Subscribe to device updates while the entity is registered."""
         await super().async_added_to_hass()
         self.async_on_remove(self._client.subscribe(self.async_write_ha_state))
+        if self._cast_entity:
+            self.async_on_remove(
+                async_track_state_change_event(
+                    self.hass, [self._cast_entity], self._cast_changed
+                )
+            )
+
+    @staticmethod
+    def _cast_picture(state: State | None) -> str | None:
+        if state is None or state.state not in ("playing", "paused", "buffering"):
+            return None
+        for attribute in ("entity_picture_local", "entity_picture"):
+            picture = state.attributes.get(attribute)
+            if isinstance(picture, str) and picture:
+                return picture
+        return None
+
+    @callback
+    def _cast_changed(self, event: Event[EventStateChangedData]) -> None:
+        if self._cast_picture(event.data["old_state"]) != self._cast_picture(
+            event.data["new_state"]
+        ):
+            self.async_write_ha_state()
+
+    @property
+    def entity_picture(self) -> str | None:
+        """Return the active Cast entity's image without fetching or copying it."""
+        if not self._cast_entity or not self.available or not self._client.state.power:
+            return None
+        return self._cast_picture(self.hass.states.get(self._cast_entity))
 
     @property
     def available(self) -> bool:
